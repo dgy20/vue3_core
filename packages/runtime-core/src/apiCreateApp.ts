@@ -252,6 +252,8 @@ export function createAppAPI<HostElement>(
   render: RootRenderFunction<HostElement>,
   hydrate?: RootHydrateFunction,
 ): CreateAppFunction<HostElement> {
+  // 用户创建的App实例是这个函数生成的
+  // vue工作方式：组件 => 组件实例 => render() => vnode => patch() => dom
   return function createApp(rootComponent, rootProps = null) {
     if (!isFunction(rootComponent)) {
       rootComponent = extend({}, rootComponent)
@@ -268,6 +270,7 @@ export function createAppAPI<HostElement>(
 
     let isMounted = false
 
+    // 声明一个App实例
     const app: App = (context.app = {
       _uid: uid++,
       _component: rootComponent as ConcreteComponent,
@@ -353,11 +356,13 @@ export function createAppAPI<HostElement>(
         return app
       },
 
-      mount(
+      // 挂载函数
+      mount( 
         rootContainer: HostElement,
         isHydrate?: boolean,
         namespace?: boolean | ElementNamespace,
       ): any {
+        // 首次执行时，并未挂载
         if (!isMounted) {
           // #5571
           if (__DEV__ && (rootContainer as any).__vue_app__) {
@@ -367,6 +372,7 @@ export function createAppAPI<HostElement>(
                 ` you need to unmount the previous app by calling \`app.unmount()\` first.`,
             )
           }
+          // 创建根组件虚拟dom
           const vnode = app._ceVNode || createVNode(rootComponent, rootProps)
           // store app context on the root VNode.
           // this will be set on the root instance on initial mount.
@@ -394,6 +400,7 @@ export function createAppAPI<HostElement>(
           if (isHydrate && hydrate) {
             hydrate(vnode as VNode<Node, Element>, rootContainer as any)
           } else {
+            // 渲染vnode => dom => rootContainer(容器)
             render(vnode, rootContainer, namespace)
           }
           isMounted = true

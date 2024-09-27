@@ -4,12 +4,49 @@
 // We are still using Rollup for production builds because it generates
 // smaller files and provides better tree-shaking.
 
+// esbuild 
 import esbuild from 'esbuild'
 import fs from 'node:fs'
+/**
+ * dirname(path): 返回给定路径的目录名。例如，dirname('/home/user/file.txt') 将返回 /home/user。
+ * relative(from, to): 返回从 from 到 to 的相对路径。例如，relative('/data/orandea/test/aaa', '/data/orandea/impl/bbb') 将返回 '../../impl/bbb'。
+ * resolve(...paths): 将多个路径段组合成一个绝对路径。例如，resolve('/foo', './bar', 'baz') 将返回 '/foo/bar/baz'。
+ */
 import { dirname, relative, resolve } from 'node:path'
+/**
+ * fileURLToPath(url): 将文件 URL 转换为文件路径。
+ * 具体来说，它解决了 Node.js 模块中使用 __filename 或 __dirname  获取文件路径时，在 ES 模块中遇到的一些问题。
+ * ES 模块中的 __filename 和 __dirname  :
+ *   在传统的 CommonJS 模块中，__filename 和 __dirname 分别代表当前模块文件的绝对路径和当前模块所在的目录路径。
+ *   但是，在 ES 模块中，__filename 和 __dirname 不再被自动定义。
+ * fileURLToPath 的作用:
+ *   fileURLToPath 函数可以将一个 URL 对象转换为一个文件系统的绝对路径。
+ *   在 ES 模块中，可以通过 import.meta.url 获取当前模块的 URL。
+ *   然后，使用 fileURLToPath(import.meta.url) 即可将 URL 转换为文件系统的绝对路径。
+ * fileURLToPath  是用来解决 ES 模块中获取文件路径问题的一个重要工具。它将 URL 对象转换为文件系统路径，
+ *   方便您在 ES 模块中使用 __filename 和 __dirname  等变量。
+ */
 import { fileURLToPath } from 'node:url'
+/**
+ * createRequire(filename): 创建一个 require 函数，该函数可以加载指定路径的模块。
+ * 具体来说，createRequire 函数可以创建一个 require 函数，该函数可以加载指定路径的模块。
+ * 这个函数的作用是用来解决 Node.js 模块中使用 require 时，在 ES 模块中遇到的一些问题。
+ * 在传统的 CommonJS 模块中，require 函数可以加载模块文件，并返回模块的 exports 对象。
+ * 但是，在 ES 模块中，require 函数不能被直接使用。
+ * createRequire 函数的作用是创建一个可以加载指定路径的模块的 require 函数。
+ * 这样，在 ES 模块中就可以使用 require 函数来加载模块文件了。
+ */
 import { createRequire } from 'node:module'
+/**
+ * parseArgs(args): 解析命令行参数。
+ * 具体来说，parseArgs 函数可以解析命令行参数，并返回一个包含选项和位置参数的对象。
+ * 这个函数的作用是用来解析命令行参数，并将其转换为对象。
+ * 这样，我们就可以在 Node.js 脚本中使用 parseArgs 函数来解析命令行参数。
+ */
 import { parseArgs } from 'node:util'
+/**
+ * polyfillNode(): 为 esbuild 添加 polyfill-node 插件。
+ */
 import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 
 const require = createRequire(import.meta.url)
@@ -21,16 +58,19 @@ const {
 } = parseArgs({
   allowPositionals: true,
   options: {
+    // 设置打包格式 --format xxx || -f xxx
     format: {
       type: 'string',
       short: 'f',
       default: 'global',
     },
+    // 设置是否为生产环境 --prod || -p
     prod: {
       type: 'boolean',
       short: 'p',
       default: false,
     },
+    // 设置是否内联依赖 --inline || -i
     inline: {
       type: 'boolean',
       short: 'i',
@@ -40,9 +80,11 @@ const {
 })
 
 const format = rawFormat || 'global'
+// 设置打包目标，不传默认打包vue
 const targets = positionals.length ? positionals : ['vue']
 
 // resolve output
+// 设置打包格式
 const outputFormat = format.startsWith('global')
   ? 'iife'
   : format === 'cjs'

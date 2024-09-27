@@ -105,6 +105,7 @@ export const createApp = ((...args) => {
 
   const { mount } = app
   app.mount = (containerOrSelector: Element | ShadowRoot | string): any => {
+    // normalizeContainer 参数标准化，统一处理成Element | ShadowRoot
     const container = normalizeContainer(containerOrSelector)
     if (!container) return
 
